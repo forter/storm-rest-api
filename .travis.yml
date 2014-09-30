@@ -7,9 +7,9 @@ script:
 deploy:
   provider: s3
   access_key_id:
-    secure: "r4rfQSCKUhV8SVry9qK6en7aGDyag2whOR7GKFJ75SIfTRZZeUkz11qV27zEGyWke6isZOMsHS7L0A2Szw20+NPolYCl5IcI37uwrwrO2waagcUsgWqkJmZ21EfgF+0myIPmBrWnxae6BOcTuVmTcZycZOMS8lMgmtZxdpEjRu4="
+    secure: "h0yKazhvbmUkYxwEvKhciCHufknS2ibfOhWXz3wEZQxG1qO3fehjjIk/rQTvLAMC9geXnFIDDlIToA9gnE9/6VDaO1ViEiw+h27ClzUzWhtpoC0ykNVnEojNr2bphrxRN7e+2/NjZssSBiKpK5JaDqzk8jgX1C+8puvE1VK28k0="
   secret_access_key:
-    secure: "yqFueGXnmdZMJRO/0/2lo2H2ZTBBwFtT4XJUzJvkgqxHUOvaE1I/hMw6MbyDgsMRPb5tqbmPeNyleVeg18N/ph9Mof/ak+KX35zXUNjh1wwlSK0AVfVtnbjPiJeKFXvAlX67W7oxvtR8fw6FieQB+A0/zm4g7kPKxOupPcAsYYI="
+    secure: "PgEwRtjdVzRSN4Dko4spasZjKJuVNGrZgYmaHjbUVd4aY8YFRGbcEEI2grOPqUkf9IIOKncnQtf4D8uFEH42nr836tCYzKwgaBsbn0Hmrq6zs29GNDJAeQy58PAxjdS8gi+YU7UPVZOPUyMWpbBNdgZTONHPtSm3k5x2o4Le9W8="
   bucket: oss.forter.com
   local-dir: /home/travis/.m2/repository/com/forter/storm-rest-api/
   upload-dir: repository/com/forter/storm-rest-api
