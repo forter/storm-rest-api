@@ -7,6 +7,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 import com.forter.storm.apis.ApiAware;
 import com.forter.storm.apis.ApiInstrumentedJoinBolt;
+import com.forter.storm.apis.ApiTopologyErrorHandler;
 import com.forter.storm.apis.ApisTopologyCommand;
 import com.forter.storm.apis.wrappers.ApisInterceptorOutputCollector;
 import com.forter.storm.apis.wrappers.ApisMorphedTuple;
@@ -37,6 +38,7 @@ public class ApisBoltWrapper implements IRichBolt {
     private transient String boltIdentification;
     private transient ApisInterceptorOutputCollector interceptorOutputCollector;
     private transient TopologyContext context;
+    private transient ApiTopologyErrorHandler errorHandler;
 
     /**
      * Create a new API instrumentation bolt wrapper
@@ -84,38 +86,45 @@ public class ApisBoltWrapper implements IRichBolt {
             }
 
             if (apiCommand.containsBolt(this.boltIdentification)) {
-                List<Object> passThroughParams = apiCommand.getPredefinedBoltOutput(this.boltIdentification);
+                try {
+                    List<Object> passThroughParams = apiCommand.getPredefinedBoltOutput(this.boltIdentification);
 
-                // in cases we already have a pre-defined output, channel the call directly without going through
-                // default stream
-                if (passThroughParams != null) {
-                    List<Object> values = Lists.newArrayList(input.getValueByField(STORM_API_ID_FIELD), apiCommand);
-                    values.addAll(passThroughParams);
-                    this.interceptorOutputCollector.emit(STORM_API_STREAM, input, values);
-                    this.interceptorOutputCollector.ack(input);
-                    return;
-                }
+                    // in cases we already have a pre-defined output, channel the call directly without going through
+                    // default stream
+                    if (passThroughParams != null) {
+                        List<Object> values = Lists.newArrayList(input.getValueByField(STORM_API_ID_FIELD), apiCommand);
+                        values.addAll(passThroughParams);
+                        this.interceptorOutputCollector.emit(STORM_API_STREAM, input, values);
+                        this.interceptorOutputCollector.ack(input);
+                        return;
+                    }
 
-                // call needs to be proxied into the default stream. Get params and create new tuple.
-                passThroughParams = this.getPassThroughFields(input, apiCommand);
+                    // call needs to be proxied into the default stream. Get params and create new tuple.
+                    passThroughParams = this.getPassThroughFields(input, apiCommand);
 
-                ApisMorphedTuple morphedTuple;
-                if (apiSpout.equals(input.getSourceComponent())) {
-                    // If the tuple was received from the API spout, we need to make the morphed tuple believe that the
-                    // tuple actually came from the default spout, since the API spout doesn't define proper out fields
-                    Integer taskId = getDefaultStreamSpoutTaskId();
-                    morphedTuple = new ApisMorphedTuple(input, passThroughParams, this.context, taskId);
-                } else {
-                    morphedTuple = new ApisMorphedTuple(input, passThroughParams, this.context);
-                }
+                    ApisMorphedTuple morphedTuple;
+                    if (apiSpout.equals(input.getSourceComponent())) {
+                        // If the tuple was received from the API spout, we need to make the morphed tuple believe that the
+                        // tuple actually came from the default spout, since the API spout doesn't define proper out fields
+                        Integer taskId = getComponentTaskId(defaultStreamSpouts.get(0));
+                        morphedTuple = new ApisMorphedTuple(input, passThroughParams, this.context, taskId);
+                    } else {
+                        morphedTuple = new ApisMorphedTuple(input, passThroughParams, this.context);
+                    }
 
-                this.interceptorOutputCollector.addEmissionInterception(input, morphedTuple);
+                    this.interceptorOutputCollector.addEmissionInterception(input, morphedTuple);
 
-                Set<String> fields = apiCommand.getJoinWaitFor(this.boltIdentification);
-                if (this.bolt instanceof ApiInstrumentedJoinBolt && fields != null) {
-                    ((ApiInstrumentedJoinBolt) this.bolt).executeExpected(morphedTuple, fields);
-                } else {
-                    this.bolt.execute(morphedTuple);
+                    Set<String> fields = apiCommand.getJoinWaitFor(this.boltIdentification);
+                    if (this.bolt instanceof ApiInstrumentedJoinBolt && fields != null) {
+                        ((ApiInstrumentedJoinBolt) this.bolt).executeExpected(morphedTuple, fields);
+                    } else {
+                        this.bolt.execute(morphedTuple);
+                    }
+                } catch (Exception e) {
+                    if (errorHandler != null) {
+                        errorHandler.reportApiError("An error has ocurred while executing API command in " + this.boltIdentification + " bolt.", e, input);
+                    }
+                    this.interceptorOutputCollector.fail(input);
                 }
             } else {
                 this.interceptorOutputCollector.ack(input);
@@ -147,14 +156,13 @@ public class ApisBoltWrapper implements IRichBolt {
     /**
      * Gets the task ID for the default stream spout. Assumes all default spouts emit the same pattern.
      */
-    private Integer getDefaultStreamSpoutTaskId() {
-        String defaultSpout = defaultStreamSpouts.get(0);
-        List<Integer> spoutTasks = this.context.getComponentTasks(defaultSpout);
+    private Integer getComponentTaskId(String bolt) {
+        List<Integer> tasks = this.context.getComponentTasks(bolt);
 
-        Preconditions.checkArgument(!spoutTasks.isEmpty(),
-                "No tasks defined for defined defualt stream spout %s", defaultSpout);
+        Preconditions.checkArgument(!tasks.isEmpty(),
+                "No tasks defined for defined defualt stream component %s", bolt);
 
-        return spoutTasks.get(0);
+        return tasks.get(0);
     }
 
     /**
@@ -162,8 +170,8 @@ public class ApisBoltWrapper implements IRichBolt {
      */
     private List<Object> getPassThroughFields(final Tuple input, ApisTopologyCommand command) {
         // if the tuple is from the API stream, emit the predefined topology input if it exists
-        if (apiSpout.equals(input.getSourceComponent()) && command.getRawInput() != null) {
-            return command.getRawInput();
+        if (apiSpout.equals(input.getSourceComponent()) && command.getInput() != null) {
+            return command.getInput();
         }
         // get all non API stream fields to channel into default stream
         Iterable<String> inputFields = Iterables.filter(input.getFields(), new Predicate<String>() {
@@ -180,5 +188,9 @@ public class ApisBoltWrapper implements IRichBolt {
             }
         });
         return Lists.newArrayList(iterable);
+    }
+
+    public void setErrorHandler(ApiTopologyErrorHandler errorHandler) {
+        this.errorHandler = errorHandler;
     }
 }
