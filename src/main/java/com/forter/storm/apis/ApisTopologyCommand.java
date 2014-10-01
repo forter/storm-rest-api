@@ -19,6 +19,8 @@ public class ApisTopologyCommand {
     private final Map<String, List<Object>> boltOutputs = Maps.newLinkedHashMap();
     private final Map<String, Set<String>> joinBoltConditions = Maps.newLinkedHashMap();
     private final String id;
+    private final long startTime;
+
     private List<Object> input;
 
     public ApisTopologyCommand(ObjectNode json) {
@@ -121,6 +123,7 @@ public class ApisTopologyCommand {
         if (boltPath != null) {
             this.boltPath.addAll(boltPath);
         }
+        this.startTime = System.currentTimeMillis();
     }
 
     /**
@@ -168,5 +171,9 @@ public class ApisTopologyCommand {
 
     public String getId() {
         return id;
+    }
+
+    public long getStartTime() {
+        return startTime;
     }
 }
