@@ -3,8 +3,6 @@ package com.forter.storm.apis;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -39,13 +37,8 @@ public class ApisTopologyCommand {
             Iterator<String> fieldNamesIter = boltOutputsJson.fieldNames();
             while (fieldNamesIter.hasNext()) {
                 String field = fieldNamesIter.next();
-                List<Object> tuple = Lists.newArrayList();
-
-                ArrayNode tArray = (ArrayNode) boltOutputsJson.get(field);
-
-                serializeTuple(tuple, tArray);
-
-                this.boltOutputs.put(field, tuple);
+                ArrayNode tupleArray = (ArrayNode) boltOutputsJson.get(field);
+                this.boltOutputs.put(field, deserializeTuple(tupleArray));
             }
         }
 
@@ -54,26 +47,25 @@ public class ApisTopologyCommand {
             Iterator<String> fieldNamesIter = joinBoltConditions.fieldNames();
             while (fieldNamesIter.hasNext()) {
                 String field = fieldNamesIter.next();
-                Set<String> atts = Sets.newHashSet();
 
+                Set<String> fields = Sets.newHashSet();
                 ArrayNode arrayNode = (ArrayNode) joinBoltConditions.get(field);
                 for (JsonNode node : arrayNode) {
-                    atts.add(node.asText());
+                    fields.add(node.asText());
                 }
 
-                this.joinBoltConditions.put(field, atts);
+                this.joinBoltConditions.put(field, fields);
             }
         }
 
         if (json.has("input") && !json.get("input").isNull()) {
-            ArrayNode inputJson = (ArrayNode) json.get("input");
-            ArrayList<Object> inputTuple = Lists.newArrayList();
-            serializeTuple(inputTuple, inputJson);
-            this.input = inputTuple;
+            ArrayNode tupleArray = (ArrayNode) json.get("input");
+            this.input = deserializeTuple(tupleArray);
         }
     }
 
-    private void serializeTuple(List<Object> tuple, ArrayNode tArray) {
+    private List<Object> deserializeTuple(ArrayNode tArray) {
+        ArrayList<Object> tuple = Lists.newArrayList();
         for (JsonNode tNode : tArray) {
             if (tNode.isObject()) {
                 tuple.add(tNode);
@@ -81,6 +73,7 @@ public class ApisTopologyCommand {
                 tuple.add(getObject(tNode));
             }
         }
+        return tuple;
     }
 
     public static Object getObject(JsonNode node) {
