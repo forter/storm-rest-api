@@ -3,14 +3,11 @@ package com.forter.storm.apis.wrappers;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
+import com.forter.storm.apis.ApisTopologyConfig;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import java.util.List;
-
-import static com.forter.storm.apis.TopologyApiConstants.STORM_API_COMMAND_FIELD;
-import static com.forter.storm.apis.TopologyApiConstants.STORM_API_ID_FIELD;
-import static com.forter.storm.apis.TopologyApiConstants.STORM_API_STREAM;
 
 /**
  * Wrapper for the storm output fields declarer. This is used to intercept the bolt's field deceleration and concatenate
@@ -19,8 +16,15 @@ import static com.forter.storm.apis.TopologyApiConstants.STORM_API_STREAM;
 public class ApisOutputFieldsDeclarerWrapper implements OutputFieldsDeclarer {
     private final OutputFieldsDeclarer delegate;
 
-    public ApisOutputFieldsDeclarerWrapper(OutputFieldsDeclarer delegate) {
+    private final String apisIdFieldName;
+    private final String apisCommandFieldName;
+    private final String apisStreamName;
+
+    public ApisOutputFieldsDeclarerWrapper(OutputFieldsDeclarer delegate, ApisTopologyConfig apisConfiguration) {
         this.delegate = delegate;
+        this.apisIdFieldName = apisConfiguration.getApisIdFieldName();
+        this.apisStreamName = apisConfiguration.getApisStreamName();
+        this.apisCommandFieldName = apisConfiguration.getApisCommandFieldName();
     }
 
     @Override
@@ -41,9 +45,9 @@ public class ApisOutputFieldsDeclarerWrapper implements OutputFieldsDeclarer {
     @Override
     public void declareStream(String streamId, boolean direct, Fields fields) {
         if (Utils.DEFAULT_STREAM_ID.equals(streamId)) {
-            List<String> apiStreamFields = Lists.newArrayList(STORM_API_ID_FIELD, STORM_API_COMMAND_FIELD);
+            List<String> apiStreamFields = Lists.newArrayList(apisIdFieldName, apisCommandFieldName);
             Iterables.addAll(apiStreamFields, fields);
-            delegate.declareStream(STORM_API_STREAM, new Fields(apiStreamFields));
+            delegate.declareStream(apisStreamName, new Fields(apiStreamFields));
         }
         delegate.declareStream(streamId, direct, fields);
     }

@@ -5,36 +5,48 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.utils.Utils;
 import com.forter.storm.apis.ApisTopologyCommand;
+import com.forter.storm.apis.ApisTopologyConfig;
+import com.forter.storm.apis.bolt.ApiAware;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
-import static com.forter.storm.apis.TopologyApiConstants.STORM_API_COMMAND_FIELD;
-import static com.forter.storm.apis.TopologyApiConstants.STORM_API_ID_FIELD;
-import static com.forter.storm.apis.TopologyApiConstants.STORM_API_STREAM;
-
 /**
 * Output collector interceptor. Used to route default stream emits to the API stream.
 */
 public class ApisInterceptorOutputCollector extends OutputCollector {
+    private static Logger logger = LoggerFactory.getLogger(ApisInterceptorOutputCollector.class);
+
     /**
      * Map that maps morphed tuple to its original API stream tuple. It's not emptied automatically since we never know
      * when a bolt is going to ack/fail/emit again...
      */
     private final ConcurrentMap<Tuple, Tuple> messageOriginalTupleMap;
+    private final String apisStreamName;
+    private final String apisIdFieldName;
+    private final String apisCommandFieldName;
+    private final boolean apiAware;
+    private final String id;
 
-    public ApisInterceptorOutputCollector(IOutputCollector delegate) {
+    public ApisInterceptorOutputCollector(IOutputCollector delegate, ApisTopologyConfig apisConfiguration, boolean apiAware, String id) {
         super(delegate);
+        this.apiAware = apiAware;
         this.messageOriginalTupleMap = new ConcurrentLinkedHashMap.Builder<Tuple, Tuple>()
                 .maximumWeightedCapacity(Integer.getInteger("apis.output.intercept.tuple.capacity", 500))
                 .build();
+        this.apisIdFieldName = apisConfiguration.getApisIdFieldName();
+        this.apisStreamName = apisConfiguration.getApisStreamName();
+        this.apisCommandFieldName = apisConfiguration.getApisCommandFieldName();
+        this.id = id;
     }
 
     /**
@@ -62,7 +74,7 @@ public class ApisInterceptorOutputCollector extends OutputCollector {
                     Preconditions.checkArgument(!interceptResult.apiAnchors.isEmpty());
                     ArrayList<Object> apiEmissionTuple = Lists.newArrayList(interceptResult.id, interceptResult.command);
                     apiEmissionTuple.addAll(tuple);
-                    return super.emit(STORM_API_STREAM, interceptResult.apiAnchors, apiEmissionTuple);
+                    return super.emit(apisStreamName, interceptResult.apiAnchors, apiEmissionTuple);
                 }
 
                 throw new RuntimeException("getInterceptedAnchors returned no API command, while " +
@@ -94,7 +106,7 @@ public class ApisInterceptorOutputCollector extends OutputCollector {
      */
     @Override
     public void fail(Tuple input) {
-        if (input.getSourceStreamId().equals(Utils.DEFAULT_STREAM_ID)) {
+        if (input.getSourceStreamId().equals(Utils.DEFAULT_STREAM_ID) || apiAware) {
             Tuple t = this.messageOriginalTupleMap.get(input);
             if (t != null) {
                 super.ack(t); // API stream tuples are always acked since failure is meaningless in the context of APIs
@@ -111,7 +123,7 @@ public class ApisInterceptorOutputCollector extends OutputCollector {
      * @param originalTuple the tuple that was received on the API stream
      * @param morphedTuple the tuple that should be passed to default stream bolt
      */
-    public void addEmissionInterception(Tuple originalTuple, ApisMorphedTuple morphedTuple) {
+    public void addEmissionInterception(Tuple originalTuple, Tuple morphedTuple) {
         messageOriginalTupleMap.put(morphedTuple, originalTuple);
     }
 
@@ -130,10 +142,10 @@ public class ApisInterceptorOutputCollector extends OutputCollector {
             Preconditions.checkNotNull(apiStreamTuple);
 
             ApisTopologyCommand apisTopologyCommand =
-                    (ApisTopologyCommand) apiStreamTuple.getValueByField(STORM_API_COMMAND_FIELD);
+                    (ApisTopologyCommand) apiStreamTuple.getValueByField(apisCommandFieldName);
 
             Object apisRequestId =
-                    apiStreamTuple.getValueByField(STORM_API_ID_FIELD);
+                    apiStreamTuple.getValueByField(apisIdFieldName);
 
             if (command == null) {
                 command = apisTopologyCommand;

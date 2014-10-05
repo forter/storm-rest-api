@@ -7,27 +7,22 @@ import backtype.storm.grouping.CustomStreamGrouping;
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
+import com.forter.storm.apis.ApisTopologyConfig;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static com.forter.storm.apis.TopologyApiConstants.STORM_API_STREAM;
 
 /**
 * Created by reem on 9/24/14.
 */
 public class APIsBoltDeclarerWrapper implements BoltDeclarer {
     private final BoltDeclarer delegate;
-    private final String apiSpout;
-    private final List<String> defaultStreamSpouts;
-    private final Map<String, String> componentReplace;
+    private final ApisTopologyConfig apisConfiguration;
 
-    public APIsBoltDeclarerWrapper(BoltDeclarer delegate, String apiSpout, List<String> defaultStreamSpouts, Map<String, String> componentReplace) {
+    public APIsBoltDeclarerWrapper(BoltDeclarer delegate, ApisTopologyConfig config) {
         this.delegate = delegate;
-        this.apiSpout = apiSpout;
-        this.defaultStreamSpouts = defaultStreamSpouts;
-        this.componentReplace = componentReplace;
+        this.apisConfiguration = config;
     }
 
     @Override
@@ -148,16 +143,20 @@ public class APIsBoltDeclarerWrapper implements BoltDeclarer {
     protected BoltDeclarer grouping(String componentId, String streamId, Grouping grouping) {
         this.grouping(new GlobalStreamId(componentId, streamId), grouping);
 
-        if (Utils.DEFAULT_STREAM_ID.equals(streamId) && !defaultStreamSpouts.contains(componentId)) {
-            String override = componentReplace.get(componentId);
+        final String STORM_API_STREAM = apisConfiguration.getApisStreamName();
+        final String STORM_API_SPOUT = apisConfiguration.getApiSpout();
+        final List<String> DEFAULT_STREAM_SPOUTS = apisConfiguration.getDefaultStreamSpouts();
+
+        if (Utils.DEFAULT_STREAM_ID.equals(streamId) && !apisConfiguration.getDefaultStreamSpouts().contains(componentId)) {
+            String override = apisConfiguration.getComponentReplace().get(componentId);
             if (override != null) {
                 componentId = override;
             }
             this.grouping(new GlobalStreamId(componentId, STORM_API_STREAM), grouping);
-        } else if (STORM_API_STREAM.equals(streamId) && defaultStreamSpouts.contains(componentId)) {
-            this.grouping(new GlobalStreamId(apiSpout, STORM_API_STREAM), grouping);
-        } else if (defaultStreamSpouts.contains(componentId)) {
-            this.grouping(new GlobalStreamId(apiSpout, STORM_API_STREAM), grouping);
+        } else if (STORM_API_STREAM.equals(streamId) && DEFAULT_STREAM_SPOUTS.contains(componentId)) {
+            this.grouping(new GlobalStreamId(STORM_API_SPOUT, STORM_API_STREAM), grouping);
+        } else if (DEFAULT_STREAM_SPOUTS.contains(componentId)) {
+            this.grouping(new GlobalStreamId(STORM_API_SPOUT, STORM_API_STREAM), grouping);
         }
 
         return this;

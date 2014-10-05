@@ -1,4 +1,4 @@
-package com.forter.storm.apis;
+package com.forter.storm.apis.errors;
 
 import backtype.storm.tuple.Tuple;
 

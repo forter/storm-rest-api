@@ -15,11 +15,12 @@ import java.util.*;
 public class ApisTopologyCommand {
     private final Set<String> boltPath = Sets.newHashSet();
     private final Map<String, List<Object>> boltOutputs = Maps.newLinkedHashMap();
-    private final Map<String, Set<String>> joinBoltConditions = Maps.newLinkedHashMap();
-    private final String id;
-    private final long startTime;
+    private String id;
+    private long startTime;
 
     private List<Object> input;
+
+    public ApisTopologyCommand() {}
 
     public ApisTopologyCommand(ObjectNode json) {
         this(json.get("id").asText(), null);
@@ -39,22 +40,6 @@ public class ApisTopologyCommand {
                 String field = fieldNamesIter.next();
                 ArrayNode tupleArray = (ArrayNode) boltOutputsJson.get(field);
                 this.boltOutputs.put(field, deserializeTuple(tupleArray));
-            }
-        }
-
-        if (json.has("joinBoltConditions") && !json.get("joinBoltConditions").isNull()) {
-            ObjectNode joinBoltConditions = (ObjectNode) json.get("joinBoltConditions");
-            Iterator<String> fieldNamesIter = joinBoltConditions.fieldNames();
-            while (fieldNamesIter.hasNext()) {
-                String field = fieldNamesIter.next();
-
-                Set<String> fields = Sets.newHashSet();
-                ArrayNode arrayNode = (ArrayNode) joinBoltConditions.get(field);
-                for (JsonNode node : arrayNode) {
-                    fields.add(node.asText());
-                }
-
-                this.joinBoltConditions.put(field, fields);
             }
         }
 
@@ -129,18 +114,9 @@ public class ApisTopologyCommand {
     }
 
     /**
-     * When querying for single attributes, specify them here so that the join bolt would not time out
-     * @param boltIdentification the ID for the join bolt in question (must implement ApiInstrumentedJoinBolt)
-     * @param fields the fields that the join should wait for
-     */
-    public void addJoinWaitFor(String boltIdentification, Set<String> fields) {
-        joinBoltConditions.put(boltIdentification, fields);
-    }
-
-    /**
      * Sets the default stream spout output. This should be a queue entry for the tx default stream.
      */
-    public void setRawInput(ArrayList<Object> input) {
+    public void setInput(ArrayList<Object> input) {
         this.input = input;
     }
 
@@ -152,10 +128,6 @@ public class ApisTopologyCommand {
 
     public List<Object> getPredefinedBoltOutput(String sourceComponent) {
         return this.boltOutputs.get(sourceComponent);
-    }
-
-    public Set<String> getJoinWaitFor(String boltIdentification) {
-        return joinBoltConditions.get(boltIdentification);
     }
 
     public List<Object> getInput() {
