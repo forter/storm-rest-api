@@ -1,10 +1,10 @@
 package com.forter.storm.apis.errors;
 
-import backtype.storm.tuple.Tuple;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * An interface for letting topology decide what to do with API exceptions
  */
 public interface ApiTopologyErrorHandler {
-    void reportApiError(String id, String message, Exception e, Tuple input);
+    ObjectNode getApiErrorMessage(String id, String message, Exception e);
 }

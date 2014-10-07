@@ -21,7 +21,7 @@ import java.util.UUID;
 public abstract class ApiRequestSpout extends BaseRichSpout {
     private final static Logger logger = LoggerFactory.getLogger(ApiRequestSpout.class);
 
-    protected final ApisTopologyConfig config;
+    private final ApisTopologyConfig config;
 
     private SpoutOutputCollector collector;
     private ObjectReader reader;
@@ -57,7 +57,7 @@ public abstract class ApiRequestSpout extends BaseRichSpout {
                 } catch (Exception e) {
                     String message = "An error has ocurred while executin API call";
                     if (config.getErrorHandler() != null) {
-                        config.getErrorHandler().reportApiError(id, message, e, null);
+                        reportError(id, config.getErrorHandler().getApiErrorMessage(id, message, e));
                     }
                 }
             } catch (Exception e) {
@@ -66,6 +66,8 @@ public abstract class ApiRequestSpout extends BaseRichSpout {
             }
         }
     }
+
+    protected abstract void reportError(String id, ObjectNode error);
 
     protected abstract ApisTopologyCommand createCommand(ObjectNode request);
 

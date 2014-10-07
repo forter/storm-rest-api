@@ -108,11 +108,8 @@ public class ApisBoltWrapper<T extends ApisTopologyCommand> implements IRichBolt
                     this.interceptorOutputCollector.addEmissionInterception(input, morphedTuple);
                     this.bolt.execute(morphedTuple);
                 } catch (Exception e) {
-                    if (this.apisConfiguration.getErrorHandler() != null) {
-                        this.apisConfiguration.getErrorHandler().reportApiError(apiCommand.getId(),
-                                "An error has ocurred while executing API command in " + this.boltIdentification +
-                                        " bolt.", e, input);
-                    }
+                    // TODO: Error handling in API calls
+                    logger.warn("Error while executing API call in " + this.boltIdentification + " bolt.", e);
                     this.interceptorOutputCollector.fail(input);
                 }
             } else {
