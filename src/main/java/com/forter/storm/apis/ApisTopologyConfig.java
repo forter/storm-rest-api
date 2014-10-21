@@ -12,7 +12,6 @@ import java.util.Map;
 public class ApisTopologyConfig implements Serializable {
     String apiSpout;
     List<String> defaultStreamSpouts;
-    Map<String, String> componentReplace;
     String apisStreamName;
     ApiTopologyErrorHandler errorHandler;
     String apisCommandFieldName;
@@ -36,10 +35,6 @@ public class ApisTopologyConfig implements Serializable {
 
     public List<String> getDefaultStreamSpouts() {
         return defaultStreamSpouts;
-    }
-
-    public Map<String, String> getComponentReplace() {
-        return componentReplace;
     }
 
     public String getApisStreamName() {

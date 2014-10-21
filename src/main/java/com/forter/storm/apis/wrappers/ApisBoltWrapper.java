@@ -32,7 +32,6 @@ public class ApisBoltWrapper<T extends ApisTopologyCommand> implements IRichBolt
     private transient String boltIdentification;
     private transient ApisInterceptorOutputCollector interceptorOutputCollector;
     private transient TopologyContext context;
-    private transient boolean isExcluded;
 
     public ApisBoltWrapper(IRichBolt bolt, ApisTopologyConfig apisConfiguration) {
         this.apisConfiguration = apisConfiguration;
@@ -45,7 +44,6 @@ public class ApisBoltWrapper<T extends ApisTopologyCommand> implements IRichBolt
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         this.boltIdentification = context.getThisComponentId();
-        this.isExcluded = apisConfiguration.getComponentReplace().containsKey(this.boltIdentification);
 
         this.interceptorOutputCollector = new ApisInterceptorOutputCollector(collector, this.apisConfiguration,
                 this.bolt instanceof ApiAware, this.boltIdentification);
@@ -61,11 +59,6 @@ public class ApisBoltWrapper<T extends ApisTopologyCommand> implements IRichBolt
     @Override
     public void execute(Tuple input) {
         if (input.getSourceGlobalStreamid().get_streamId().equals(apisConfiguration.getApisStreamName())) {
-            if (isExcluded) {
-                this.interceptorOutputCollector.ack(input);
-                return;
-            }
-
             //noinspection unchecked
             T apiCommand = (T) input.getValueByField(apisConfiguration.getApisCommandFieldName());
 

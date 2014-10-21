@@ -37,10 +37,6 @@ public class ApisTopologyConfigBuilder {
             instance.apisIdFieldName = "request-id";
         }
 
-        if (instance.componentReplace == null) {
-            instance.componentReplace = Maps.newHashMap();
-        }
-
         return instance;
     }
 
@@ -50,10 +46,6 @@ public class ApisTopologyConfigBuilder {
 
     public void setDefaultStreamSpouts(List<String> defaultStreamSpouts) {
         instance.defaultStreamSpouts = defaultStreamSpouts;
-    }
-
-    public void setComponentReplace(Map<String, String> componentReplace) {
-        instance.componentReplace = componentReplace;
     }
 
     public void setApisStreamName(String apisStreamName) {

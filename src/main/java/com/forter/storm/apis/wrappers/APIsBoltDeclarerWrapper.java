@@ -148,10 +148,6 @@ public class APIsBoltDeclarerWrapper implements BoltDeclarer {
         final List<String> DEFAULT_STREAM_SPOUTS = apisConfiguration.getDefaultStreamSpouts();
 
         if (Utils.DEFAULT_STREAM_ID.equals(streamId) && !apisConfiguration.getDefaultStreamSpouts().contains(componentId)) {
-            String override = apisConfiguration.getComponentReplace().get(componentId);
-            if (override != null) {
-                componentId = override;
-            }
             this.grouping(new GlobalStreamId(componentId, STORM_API_STREAM), grouping);
         } else if (STORM_API_STREAM.equals(streamId) && DEFAULT_STREAM_SPOUTS.contains(componentId)) {
             this.grouping(new GlobalStreamId(STORM_API_SPOUT, STORM_API_STREAM), grouping);
