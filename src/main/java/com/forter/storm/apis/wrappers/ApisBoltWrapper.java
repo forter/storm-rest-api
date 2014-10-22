@@ -58,7 +58,7 @@ public class ApisBoltWrapper<T extends ApisTopologyCommand> implements IRichBolt
      */
     @Override
     public void execute(Tuple input) {
-        if (input.getSourceGlobalStreamid().get_streamId().equals(apisConfiguration.getApisStreamName())) {
+       if (input.getSourceGlobalStreamid().get_streamId().equals(apisConfiguration.getApisStreamName())) {
             //noinspection unchecked
             T apiCommand = (T) input.getValueByField(apisConfiguration.getApisCommandFieldName());
 
