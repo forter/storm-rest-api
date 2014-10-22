@@ -11,8 +11,8 @@ deploy:
   secret_access_key:
     secure: "PgEwRtjdVzRSN4Dko4spasZjKJuVNGrZgYmaHjbUVd4aY8YFRGbcEEI2grOPqUkf9IIOKncnQtf4D8uFEH42nr836tCYzKwgaBsbn0Hmrq6zs29GNDJAeQy58PAxjdS8gi+YU7UPVZOPUyMWpbBNdgZTONHPtSm3k5x2o4Le9W8="
   bucket: oss.forter.com
-  local-dir: /home/travis/.m2/repository/com/forter/storm-rest-api/
-  upload-dir: repository/com/forter/storm-rest-api
+  local-dir: /home/travis/.m2/repository/com/forter/storm-topology-api/
+  upload-dir: repository/com/forter/storm-topology-api
   skip_cleanup: true
   on:
     all_branches: true
