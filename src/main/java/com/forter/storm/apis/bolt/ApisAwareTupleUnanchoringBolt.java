@@ -6,9 +6,13 @@ import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
+import backtype.storm.utils.Utils;
 import com.forter.storm.apis.ApisTopologyCommand;
 import com.forter.storm.apis.ApisTopologyConfig;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -35,14 +39,26 @@ public class ApisAwareTupleUnanchoringBolt implements IRichBolt, ApiAware<ApisTo
 
     @Override
     public void execute(Tuple input) {
-        this.collector.emit(input.getValues());
+        this.collector.emit(input.select(new Fields(this.outFields)));
         this.collector.ack(input);
     }
 
     @Override
     public void execute(Tuple input, ApisTopologyCommand command) {
-        this.collector.emit(input.getSourceStreamId(), input, input.getValues());
+        List<Object> tuple = getApisOutTuple(input);
+        this.collector.emit(input.getSourceStreamId(), input, tuple);
         this.collector.ack(input);
+    }
+
+    private List<Object> getApisOutTuple(Tuple input) {
+        List<Object> tuple = Lists.newArrayList();
+
+        tuple.add(input.getValue(0));
+        tuple.add(input.getValue(1));
+
+        Iterables.addAll(tuple, input.select(new Fields(this.outFields)));
+
+        return tuple;
     }
 
     @Override
