@@ -39,7 +39,8 @@ public class ApisAwareTupleUnanchoringBolt implements IRichBolt, ApiAware<ApisTo
 
     @Override
     public void execute(Tuple input) {
-        this.collector.emit(input.select(new Fields(this.outFields)));
+        List<Object> tuple = input.select(new Fields(this.outFields));
+        this.collector.emit(tuple);
         this.collector.ack(input);
     }
 
