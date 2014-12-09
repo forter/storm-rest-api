@@ -20,8 +20,8 @@ import java.util.Map;
  * Bolt that is used solely for un-anchoring tuples for the rest of the topology
  */
 public class ApisAwareTupleUnanchoringBolt implements IRichBolt, ApiAware<ApisTopologyCommand> {
-    private final String[] outFields;
-    private OutputCollector collector;
+    protected final String[] outFields;
+    protected OutputCollector collector;
 
     public ApisAwareTupleUnanchoringBolt(List<String> outFieldsList) {
         String[] outFields = new String[outFieldsList.size()];
@@ -40,6 +40,9 @@ public class ApisAwareTupleUnanchoringBolt implements IRichBolt, ApiAware<ApisTo
     @Override
     public void execute(Tuple input) {
         List<Object> tuple = input.select(new Fields(this.outFields));
+
+        addCustomFields(input, tuple);
+
         this.collector.emit(tuple);
         this.collector.ack(input);
     }
@@ -47,11 +50,21 @@ public class ApisAwareTupleUnanchoringBolt implements IRichBolt, ApiAware<ApisTo
     @Override
     public void execute(Tuple input, ApisTopologyCommand command) {
         List<Object> tuple = getApisOutTuple(input);
+
+        addCustomFields(input, tuple);
+
         this.collector.emit(input.getSourceStreamId(), input, tuple);
         this.collector.ack(input);
     }
 
-    private List<Object> getApisOutTuple(Tuple input) {
+    /**
+     * Adds custom fields to tuple. Default implementation is empty, used by extenders.
+     * @param input The input tuple
+     * @param tuple The output tuple values
+     */
+    public void addCustomFields(Tuple input, List<Object> tuple) {}
+
+    protected List<Object> getApisOutTuple(Tuple input) {
         List<Object> tuple = Lists.newArrayList();
 
         tuple.add(input.getValue(0));
