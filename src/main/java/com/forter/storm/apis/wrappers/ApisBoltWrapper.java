@@ -150,7 +150,13 @@ public class ApisBoltWrapper<T extends ApisTopologyCommand> implements IRichBolt
     private List<Object> getPassThroughFields(final Tuple input, ApisTopologyCommand command) {
         // if the tuple is from the API stream, emit the predefined topology input if it exists
         if (this.apisConfiguration.getApiSpout().equals(input.getSourceComponent()) && command.getInput() != null) {
-            return command.getInput();
+            List<Object> list = command.getInput();
+            for (String field : input.getFields()) {
+                if (field.startsWith("_")) {
+                    list.add(input.getStringByField(field));
+                }
+            }
+            return list;
         }
         // get all non API stream fields to channel into default stream
         Iterable<String> inputFields = Iterables.filter(input.getFields(), new Predicate<String>() {
