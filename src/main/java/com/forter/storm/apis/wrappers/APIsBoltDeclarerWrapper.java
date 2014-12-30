@@ -107,7 +107,7 @@ public class APIsBoltDeclarerWrapper implements BoltDeclarer {
 
     @Override
     public BoltDeclarer grouping(GlobalStreamId id, Grouping grouping) {
-        return delegate.grouping(id, grouping);
+        return this.grouping(id.get_componentId(), id.get_streamId(), grouping);
     }
 
     @Override
@@ -141,14 +141,14 @@ public class APIsBoltDeclarerWrapper implements BoltDeclarer {
     }
 
     protected BoltDeclarer grouping(String componentId, String streamId, Grouping grouping) {
-        this.grouping(new GlobalStreamId(componentId, streamId), grouping);
+        delegate.grouping(new GlobalStreamId(componentId, streamId), grouping);
 
         final String STORM_API_STREAM = apisConfiguration.getApisStreamName();
         final String STORM_API_SPOUT = apisConfiguration.getApiSpout();
         final List<String> DEFAULT_STREAM_SPOUTS = apisConfiguration.getDefaultStreamSpouts();
 
-        if (Utils.DEFAULT_STREAM_ID.equals(streamId) && !apisConfiguration.getDefaultStreamSpouts().contains(componentId)) {
-            this.grouping(new GlobalStreamId(componentId, STORM_API_STREAM), grouping);
+        if (!streamId.equals(STORM_API_STREAM) && !apisConfiguration.getDefaultStreamSpouts().contains(componentId)) {
+             this.grouping(new GlobalStreamId(componentId, STORM_API_STREAM), grouping);
         } else if (STORM_API_STREAM.equals(streamId) && DEFAULT_STREAM_SPOUTS.contains(componentId)) {
             this.grouping(new GlobalStreamId(STORM_API_SPOUT, STORM_API_STREAM), grouping);
         } else if (DEFAULT_STREAM_SPOUTS.contains(componentId)) {

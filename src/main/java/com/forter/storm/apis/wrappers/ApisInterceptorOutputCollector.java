@@ -57,7 +57,7 @@ public class ApisInterceptorOutputCollector extends OutputCollector {
     @Override
     public List<Integer> emit(String streamId, Collection<Tuple> anchors, List<Object> tuple) {
         // if the wrapped bolt emitted to default stream and has anchored its tuples (prerequisites for using API interceptor)
-        if (Utils.DEFAULT_STREAM_ID.equals(streamId) && anchors != null && !anchors.isEmpty()) {
+        if (!apisStreamName.equals(streamId) && anchors != null && !anchors.isEmpty()) {
             // find all anchors that need to be linked to the emission. This will happen for all emits in the default flow too
             Iterable<Tuple> anchorsToIntercept = Iterables.filter(anchors,
                     new Predicate<Tuple>() {
@@ -90,7 +90,7 @@ public class ApisInterceptorOutputCollector extends OutputCollector {
      */
     @Override
     public void ack(Tuple input) {
-        if (input.getSourceStreamId().equals(Utils.DEFAULT_STREAM_ID)) {
+        if (!input.getSourceStreamId().equals(apisStreamName)) {
             Tuple t = this.messageOriginalTupleMap.get(input);
             if (t != null) {
                 super.ack(t);
@@ -106,7 +106,7 @@ public class ApisInterceptorOutputCollector extends OutputCollector {
      */
     @Override
     public void fail(Tuple input) {
-        if (input.getSourceStreamId().equals(Utils.DEFAULT_STREAM_ID) || apiAware) {
+        if (!input.getSourceStreamId().equals(apisStreamName)  || apiAware) {
             Tuple t = this.messageOriginalTupleMap.get(input);
             if (t != null) {
                 super.ack(t); // API stream tuples are always acked since failure is meaningless in the context of APIs

@@ -44,7 +44,7 @@ public class ApisOutputFieldsDeclarerWrapper implements OutputFieldsDeclarer {
 
     @Override
     public void declareStream(String streamId, boolean direct, Fields fields) {
-        if (Utils.DEFAULT_STREAM_ID.equals(streamId)) {
+        if (!apisStreamName.equals(streamId)) {
             List<String> apiStreamFields = Lists.newArrayList(apisIdFieldName, apisCommandFieldName);
             Iterables.addAll(apiStreamFields, fields);
             delegate.declareStream(apisStreamName, new Fields(apiStreamFields));
