@@ -6,6 +6,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
+import backtype.storm.utils.Utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -38,7 +39,7 @@ public abstract class ApiRequestSpout extends BaseRichSpout {
 
         appendExtraFields(declaredFields);
 
-        declarer.declareStream(config.getApisStreamName(), new Fields(declaredFields));
+        declarer.declareStream(config.getApisStreamName(Utils.DEFAULT_STREAM_ID), new Fields(declaredFields));
     }
 
     @Override
@@ -62,7 +63,7 @@ public abstract class ApiRequestSpout extends BaseRichSpout {
 
                     appendExtraValues(values);
 
-                    this.collector.emit(config.getApisStreamName(), values, uuid);
+                    this.collector.emit(config.getApisStreamName(Utils.DEFAULT_STREAM_ID), values, uuid);
                 } catch (Exception e) {
                     String message = "An error has ocurred while executin API call";
                     if (config.getErrorHandler() != null) {

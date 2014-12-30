@@ -37,8 +37,8 @@ public class ApisTopologyConfig implements Serializable {
         return defaultStreamSpouts;
     }
 
-    public String getApisStreamName() {
-        return apisStreamName;
+    public String getApisStreamName(String originalStream) {
+        return apisStreamName + "-" + originalStream;
     }
 
     public ApiTopologyErrorHandler getErrorHandler() {
@@ -53,4 +53,14 @@ public class ApisTopologyConfig implements Serializable {
         return apisIdFieldName;
     }
 
+    public boolean isApiStream(String streamId) {
+        return streamId.startsWith(apisStreamName + "-");
+    }
+
+    public String getBackingStreamName(String sourceStreamId) {
+        if (!isApiStream(sourceStreamId)) {
+            throw new RuntimeException("Stream " + sourceStreamId + " was not an API backed stream. Failing...");
+        }
+        return sourceStreamId.substring(apisStreamName.length() + 1);
+    }
 }

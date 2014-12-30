@@ -9,6 +9,7 @@ import com.forter.storm.apis.bolt.ApiSkip;
 import com.forter.storm.apis.ApisTopologyCommand;
 import com.forter.storm.apis.ApisTopologyConfig;
 import com.forter.storm.apis.bolt.ApiAware;
+import com.forter.storm.apis.bolt.WrappedBolt;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
@@ -58,16 +59,19 @@ public class ApisBoltWrapper<T extends ApisTopologyCommand> implements IRichBolt
      */
     @Override
     public void execute(Tuple input) {
-       if (input.getSourceGlobalStreamid().get_streamId().equals(apisConfiguration.getApisStreamName())) {
+        String sourceStreamId = input.getSourceStreamId();
+        if (apisConfiguration.isApiStream(sourceStreamId)) {
             //noinspection unchecked
             T apiCommand = (T) input.getValueByField(apisConfiguration.getApisCommandFieldName());
 
             if (apiCommand.containsBolt(this.boltIdentification)) {
                 try {
-                    if (this.bolt instanceof ApiAware) {
+                    ApiAware apiAwareComponent = getApiAwareComponent(this.bolt);
+
+                    if (apiAwareComponent != null) {
                         this.interceptorOutputCollector.addEmissionInterception(input, input);
                         //noinspection unchecked
-                        ((ApiAware<T>) this.bolt).execute(input, apiCommand);
+                        ((ApiAware<T>) apiAwareComponent).execute(input, apiCommand);
                         return;
                     }
 
@@ -80,7 +84,8 @@ public class ApisBoltWrapper<T extends ApisTopologyCommand> implements IRichBolt
                                 input.getValueByField(this.apisConfiguration.getApisIdFieldName()), apiCommand);
 
                         values.addAll(passThroughParams);
-                        this.interceptorOutputCollector.emit(this.apisConfiguration.getApisStreamName(), input, values);
+
+                        this.interceptorOutputCollector.emit(sourceStreamId, input, values);
                         this.interceptorOutputCollector.ack(input);
                         return;
                     }
@@ -89,13 +94,16 @@ public class ApisBoltWrapper<T extends ApisTopologyCommand> implements IRichBolt
                     passThroughParams = this.getPassThroughFields(input, apiCommand);
 
                     ApisMorphedTuple morphedTuple;
+
+                    String backingStreamName = apisConfiguration.getBackingStreamName(sourceStreamId);
+
                     if (this.apisConfiguration.getApiSpout().equals(input.getSourceComponent())) {
                         // If the tuple was received from the API spout, we need to make the morphed tuple believe that the
                         // tuple actually came from the default spout, since the API spout doesn't define proper out fields
                         Integer taskId = getComponentTaskId(this.apisConfiguration.getDefaultStreamSpouts().get(0));
-                        morphedTuple = new ApisMorphedTuple(input, passThroughParams, this.context, taskId);
+                        morphedTuple = new ApisMorphedTuple(input, passThroughParams, backingStreamName, this.context, taskId);
                     } else {
-                        morphedTuple = new ApisMorphedTuple(input, passThroughParams, this.context);
+                        morphedTuple = new ApisMorphedTuple(input, passThroughParams, backingStreamName, this.context);
                     }
 
                     this.interceptorOutputCollector.addEmissionInterception(input, morphedTuple);
@@ -112,6 +120,21 @@ public class ApisBoltWrapper<T extends ApisTopologyCommand> implements IRichBolt
         }
 
         this.bolt.execute(input); // channel the call through regularly if we're not in APIs stream
+    }
+
+    private ApiAware getApiAwareComponent(IRichBolt bolt) {
+        if (bolt instanceof ApiAware) {
+            return (ApiAware) bolt;
+        }
+
+        if (bolt instanceof WrappedBolt) {
+            IRichBolt wrappedInstance = ((WrappedBolt) bolt).getWrappedInstance();
+            if (wrappedInstance instanceof ApiAware) {
+                return (ApiAware) wrappedInstance;
+            }
+        }
+
+        return null;
     }
 
     @Override

@@ -31,7 +31,7 @@ public class ApisInterceptorOutputCollector extends OutputCollector {
      * when a bolt is going to ack/fail/emit again...
      */
     private final ConcurrentMap<Tuple, Tuple> messageOriginalTupleMap;
-    private final String apisStreamName;
+    private final ApisTopologyConfig apisConfiguration;
     private final String apisIdFieldName;
     private final String apisCommandFieldName;
     private final boolean apiAware;
@@ -44,8 +44,8 @@ public class ApisInterceptorOutputCollector extends OutputCollector {
                 .maximumWeightedCapacity(Integer.getInteger("apis.output.intercept.tuple.capacity", 500))
                 .build();
         this.apisIdFieldName = apisConfiguration.getApisIdFieldName();
-        this.apisStreamName = apisConfiguration.getApisStreamName();
         this.apisCommandFieldName = apisConfiguration.getApisCommandFieldName();
+        this.apisConfiguration = apisConfiguration;
         this.id = id;
     }
 
@@ -57,7 +57,7 @@ public class ApisInterceptorOutputCollector extends OutputCollector {
     @Override
     public List<Integer> emit(String streamId, Collection<Tuple> anchors, List<Object> tuple) {
         // if the wrapped bolt emitted to default stream and has anchored its tuples (prerequisites for using API interceptor)
-        if (!apisStreamName.equals(streamId) && anchors != null && !anchors.isEmpty()) {
+        if (!apisConfiguration.isApiStream(streamId) && anchors != null && !anchors.isEmpty()) {
             // find all anchors that need to be linked to the emission. This will happen for all emits in the default flow too
             Iterable<Tuple> anchorsToIntercept = Iterables.filter(anchors,
                     new Predicate<Tuple>() {
@@ -74,7 +74,7 @@ public class ApisInterceptorOutputCollector extends OutputCollector {
                     Preconditions.checkArgument(!interceptResult.apiAnchors.isEmpty());
                     ArrayList<Object> apiEmissionTuple = Lists.newArrayList(interceptResult.id, interceptResult.command);
                     apiEmissionTuple.addAll(tuple);
-                    return super.emit(apisStreamName, interceptResult.apiAnchors, apiEmissionTuple);
+                    return super.emit(apisConfiguration.getApisStreamName(streamId), interceptResult.apiAnchors, apiEmissionTuple);
                 }
 
                 throw new RuntimeException("getInterceptedAnchors returned no API command, while " +
@@ -90,7 +90,7 @@ public class ApisInterceptorOutputCollector extends OutputCollector {
      */
     @Override
     public void ack(Tuple input) {
-        if (!input.getSourceStreamId().equals(apisStreamName)) {
+        if (!apisConfiguration.isApiStream(input.getSourceStreamId())) {
             Tuple t = this.messageOriginalTupleMap.get(input);
             if (t != null) {
                 super.ack(t);
@@ -106,7 +106,7 @@ public class ApisInterceptorOutputCollector extends OutputCollector {
      */
     @Override
     public void fail(Tuple input) {
-        if (!input.getSourceStreamId().equals(apisStreamName)  || apiAware) {
+        if (!apisConfiguration.isApiStream(input.getSourceStreamId())  || apiAware) {
             Tuple t = this.messageOriginalTupleMap.get(input);
             if (t != null) {
                 super.ack(t); // API stream tuples are always acked since failure is meaningless in the context of APIs

@@ -16,15 +16,11 @@ import java.util.List;
 public class ApisOutputFieldsDeclarerWrapper implements OutputFieldsDeclarer {
     private final OutputFieldsDeclarer delegate;
 
-    private final String apisIdFieldName;
-    private final String apisCommandFieldName;
-    private final String apisStreamName;
+    private final ApisTopologyConfig apisConfiguration;
 
     public ApisOutputFieldsDeclarerWrapper(OutputFieldsDeclarer delegate, ApisTopologyConfig apisConfiguration) {
         this.delegate = delegate;
-        this.apisIdFieldName = apisConfiguration.getApisIdFieldName();
-        this.apisStreamName = apisConfiguration.getApisStreamName();
-        this.apisCommandFieldName = apisConfiguration.getApisCommandFieldName();
+        this.apisConfiguration = apisConfiguration;
     }
 
     @Override
@@ -44,10 +40,14 @@ public class ApisOutputFieldsDeclarerWrapper implements OutputFieldsDeclarer {
 
     @Override
     public void declareStream(String streamId, boolean direct, Fields fields) {
-        if (!apisStreamName.equals(streamId)) {
-            List<String> apiStreamFields = Lists.newArrayList(apisIdFieldName, apisCommandFieldName);
+        if (!apisConfiguration.isApiStream(streamId)) {
+            List<String> apiStreamFields = Lists.newArrayList(
+                    apisConfiguration.getApisIdFieldName(),
+                    apisConfiguration.getApisCommandFieldName());
+
             Iterables.addAll(apiStreamFields, fields);
-            delegate.declareStream(apisStreamName, new Fields(apiStreamFields));
+
+            delegate.declareStream(apisConfiguration.getApisStreamName(streamId), new Fields(apiStreamFields));
         }
         delegate.declareStream(streamId, direct, fields);
     }
