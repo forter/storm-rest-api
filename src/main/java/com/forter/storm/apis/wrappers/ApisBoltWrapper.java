@@ -9,8 +9,9 @@ import com.forter.storm.apis.ApisTopologyCommand;
 import com.forter.storm.apis.ApisTopologyConfig;
 import com.forter.storm.apis.bolt.ApiAware;
 import com.forter.storm.apis.bolt.ApiSkip;
-import com.forter.storm.apis.bolt.WrappedBolt;
+import com.forter.storm.apis.bolt.ApisWrappedBolt;
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -130,10 +131,10 @@ public class ApisBoltWrapper<T extends ApisTopologyCommand> implements IRichBolt
             return (ApiAware) bolt;
         }
 
-        if (bolt instanceof WrappedBolt) {
-            IRichBolt wrappedInstance = ((WrappedBolt) bolt).getWrappedInstance();
-            if (wrappedInstance instanceof ApiAware) {
-                return (ApiAware) wrappedInstance;
+        if (bolt instanceof ApisWrappedBolt) {
+            Optional<ApiAware> wrappedInstance = ((ApisWrappedBolt) bolt).getWrappedInstance(ApiAware.class);
+            if (wrappedInstance.isPresent()) {
+                return wrappedInstance.get();
             }
         }
 
