@@ -21,7 +21,7 @@ import java.util.Map;
 public class RedisApiSpout extends ApiRequestSpout {
     private static Logger logger = LoggerFactory.getLogger(RedisApiSpout.class);
 
-    private final RedisApisConfiguration config;
+    protected final RedisApisConfiguration config;
 
     private transient Jedis jedis;
     private transient ObjectWriter writer;

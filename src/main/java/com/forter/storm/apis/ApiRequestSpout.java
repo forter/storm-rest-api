@@ -26,8 +26,8 @@ public abstract class ApiRequestSpout extends BaseRichSpout {
 
     private final ApisTopologyConfig config;
 
-    private SpoutOutputCollector collector;
-    private ObjectReader reader;
+    protected SpoutOutputCollector collector;
+    protected ObjectReader reader;
 
     public ApiRequestSpout(ApisTopologyConfig config) {
         this.config = config;
