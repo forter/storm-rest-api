@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.forter.storm.apis.ApiRequestSpout;
-import com.forter.storm.apis.ApisTopologyCommand;
 import com.forter.storm.apis.ApisTopologyConfig;
 import com.forter.storm.apis.ObjectMapperHolder;
 import org.slf4j.Logger;
@@ -18,10 +17,10 @@ import java.util.Map;
 /**
  * Created by reem on 10/7/14.
  */
-public class RedisApiSpout extends ApiRequestSpout {
+public abstract class RedisApiSpout extends ApiRequestSpout {
     private static Logger logger = LoggerFactory.getLogger(RedisApiSpout.class);
 
-    private final RedisApisConfiguration config;
+    protected final RedisApisConfiguration config;
 
     private transient Jedis jedis;
     private transient ObjectWriter writer;
@@ -51,11 +50,6 @@ public class RedisApiSpout extends ApiRequestSpout {
     public void close() {
         super.close();
         this.jedis.disconnect();
-    }
-
-    @Override
-    protected ApisTopologyCommand createCommand(ObjectNode request) {
-        return new ApisTopologyCommand(request);
     }
 
     @Override
