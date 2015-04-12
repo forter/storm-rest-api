@@ -1,6 +1,7 @@
 package com.forter.storm.apis;
 
 import backtype.storm.spout.SpoutOutputCollector;
+import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichSpout;
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
+import com.javafx.tools.doclets.internal.toolkit.util.DocFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,15 +36,6 @@ public abstract class ApiRequestSpout extends BaseRichSpout {
     }
 
     @Override
-    public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        List<String> declaredFields = Lists.newArrayList(config.getApisIdFieldName(), config.getApisCommandFieldName());
-
-        appendExtraFields(declaredFields);
-
-        declarer.declareStream(config.getApisStreamName(Utils.DEFAULT_STREAM_ID), new Fields(declaredFields));
-    }
-
-    @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
         this.collector = collector;
         this.reader = ObjectMapperHolder.getReader();
@@ -56,12 +49,7 @@ public abstract class ApiRequestSpout extends BaseRichSpout {
                 JsonNode request = this.reader.readTree(requestJson);
                 String id = request.get("id").asText();
                 try {
-                    String uuid = UUID.randomUUID().toString();
-                    Values values = createValues((ObjectNode) request);
-
-                    appendExtraValues(values);
-
-                    this.collector.emit(config.getApisStreamName(Utils.DEFAULT_STREAM_ID), values, uuid);
+                    emitCommand(collector, (ObjectNode) request);
                 } catch (Exception e) {
                     String message = "An error has ocurred while executin API call";
                     if (config.getErrorHandler() != null) {
@@ -74,6 +62,8 @@ public abstract class ApiRequestSpout extends BaseRichSpout {
             }
         }
     }
+
+    protected abstract void emitCommand(SpoutOutputCollector collector, ObjectNode request);
 
     /**
      * Method for adding extra values to emitted tuple, for overloading by implementations
@@ -88,8 +78,6 @@ public abstract class ApiRequestSpout extends BaseRichSpout {
     protected void appendExtraFields(List<String> fields) { }
 
     protected abstract void reportError(String id, ObjectNode error);
-
-    protected abstract Values createValues(ObjectNode request);
 
     protected abstract String getApiCommandJson();
 
