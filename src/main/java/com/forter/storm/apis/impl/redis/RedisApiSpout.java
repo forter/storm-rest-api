@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.forter.storm.apis.ApiRequestSpout;
-import com.forter.storm.apis.ApisTopologyCommand;
 import com.forter.storm.apis.ApisTopologyConfig;
 import com.forter.storm.apis.ObjectMapperHolder;
 import org.slf4j.Logger;
