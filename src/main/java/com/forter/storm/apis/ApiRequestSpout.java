@@ -65,18 +65,6 @@ public abstract class ApiRequestSpout extends BaseRichSpout {
 
     protected abstract void emitCommand(SpoutOutputCollector collector, ObjectNode request);
 
-    /**
-     * Method for adding extra values to emitted tuple, for overloading by implementations
-     * @param values The initial values to be emitted, will be edited by overriding method
-     */
-    protected void appendExtraValues(Values values) { }
-
-    /**
-     * Method for adding extra fields to emitted tuple, for overloading by implementations
-     * @param fields The initial fields to be emitted, will be edited by overriding method
-     */
-    protected void appendExtraFields(List<String> fields) { }
-
     protected abstract void reportError(String id, ObjectNode error);
 
     protected abstract String getApiCommandJson();
