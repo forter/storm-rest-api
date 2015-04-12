@@ -56,10 +56,8 @@ public abstract class ApiRequestSpout extends BaseRichSpout {
                 JsonNode request = this.reader.readTree(requestJson);
                 String id = request.get("id").asText();
                 try {
-                    ApisTopologyCommand apisTopologyCommand = createCommand((ObjectNode) request);
                     String uuid = UUID.randomUUID().toString();
-
-                    Values values = new Values(apisTopologyCommand.getId(), apisTopologyCommand);
+                    Values values = createValues((ObjectNode) request);
 
                     appendExtraValues(values);
 
@@ -91,7 +89,7 @@ public abstract class ApiRequestSpout extends BaseRichSpout {
 
     protected abstract void reportError(String id, ObjectNode error);
 
-    protected abstract ApisTopologyCommand createCommand(ObjectNode request);
+    protected abstract Values createValues(ObjectNode request);
 
     protected abstract String getApiCommandJson();
 

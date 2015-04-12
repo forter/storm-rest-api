@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * Created by reem on 10/7/14.
  */
-public class RedisApiSpout extends ApiRequestSpout {
+public abstract class RedisApiSpout extends ApiRequestSpout {
     private static Logger logger = LoggerFactory.getLogger(RedisApiSpout.class);
 
     private final RedisApisConfiguration config;
@@ -51,11 +51,6 @@ public class RedisApiSpout extends ApiRequestSpout {
     public void close() {
         super.close();
         this.jedis.disconnect();
-    }
-
-    @Override
-    protected ApisTopologyCommand createCommand(ObjectNode request) {
-        return new ApisTopologyCommand(request);
     }
 
     @Override
