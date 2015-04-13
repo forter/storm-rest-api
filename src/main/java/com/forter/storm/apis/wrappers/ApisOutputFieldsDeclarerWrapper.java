@@ -3,7 +3,7 @@ package com.forter.storm.apis.wrappers;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
-import com.forter.storm.apis.ApisTopologyConfig;
+import com.forter.storm.apis.ApisRemoteCommandTopologyConfig;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
@@ -16,9 +16,9 @@ import java.util.List;
 public class ApisOutputFieldsDeclarerWrapper implements OutputFieldsDeclarer {
     private final OutputFieldsDeclarer delegate;
 
-    private final ApisTopologyConfig apisConfiguration;
+    private final ApisRemoteCommandTopologyConfig apisConfiguration;
 
-    public ApisOutputFieldsDeclarerWrapper(OutputFieldsDeclarer delegate, ApisTopologyConfig apisConfiguration) {
+    public ApisOutputFieldsDeclarerWrapper(OutputFieldsDeclarer delegate, ApisRemoteCommandTopologyConfig apisConfiguration) {
         this.delegate = delegate;
         this.apisConfiguration = apisConfiguration;
     }

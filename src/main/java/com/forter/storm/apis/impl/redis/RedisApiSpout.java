@@ -17,30 +17,29 @@ import java.util.Map;
 /**
  * Created by reem on 10/7/14.
  */
-public abstract class RedisApiSpout extends ApiRequestSpout {
+public abstract class RedisApiSpout<C extends ApisTopologyConfig, T extends RedisApisConfiguration>
+        extends ApiRequestSpout<C> {
     private static Logger logger = LoggerFactory.getLogger(RedisApiSpout.class);
 
-    protected final RedisApisConfiguration config;
+    protected final T transportConfig;
 
     private transient Jedis jedis;
     private transient ObjectWriter writer;
 
-    public RedisApiSpout(ApisTopologyConfig config) {
+    public RedisApiSpout(C config) {
         super(config);
-        this.config = (RedisApisConfiguration)config;
+        this.transportConfig = (T) config.getTrasport();
     }
 
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
-        super.open(conf, context, collector);
-        jedis = new Jedis(config.getApisRedisHost(), config.getApisRedisPort());
+        jedis = new Jedis(transportConfig.getApisRedisHost(), transportConfig.getApisRedisPort());
         writer = ObjectMapperHolder.getWriter();
     }
 
-    @Override
     protected void reportError(String id, ObjectNode error) {
         try {
-            this.jedis.lpush(config.getApisRedisResponseChannel(), writer.writeValueAsString(error));
+            this.jedis.lpush(transportConfig.getApisRedisResponseChannel(), writer.writeValueAsString(error));
         } catch (JsonProcessingException e) {
             logger.warn("Error while reporting error", e);
         }
@@ -50,10 +49,5 @@ public abstract class RedisApiSpout extends ApiRequestSpout {
     public void close() {
         super.close();
         this.jedis.disconnect();
-    }
-
-    @Override
-    protected String getApiCommandJson() {
-        return this.jedis.rpop(config.getApisRedisRequestQueue());
     }
 }

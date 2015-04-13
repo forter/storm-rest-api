@@ -20,7 +20,7 @@ import java.util.Map;
 public abstract class ApiSinkBolt implements IRichBolt, ApiAware {
     private final static Logger logger = LoggerFactory.getLogger(ApiSinkBolt.class);
 
-    protected ApisTopologyConfig apisConfiguration;
+    protected ApisRemoteCommandTopologyConfig apisConfiguration;
 
     private OutputCollector collector;
     private ObjectReader reader;
@@ -46,8 +46,8 @@ public abstract class ApiSinkBolt implements IRichBolt, ApiAware {
         } catch (Exception e) {
             logger.warn("Error writing API results to redis, writing error", e);
             try {
-                if (apisConfiguration.getErrorHandler() != null) {
-                    registerApiResult(id, apisConfiguration.getErrorHandler()
+                if (apisConfiguration.getTrasport().getErrorHandler() != null) {
+                    registerApiResult(id, apisConfiguration.getTrasport().getErrorHandler()
                             .getApiErrorMessage(id, "Error writing API results to redis, writing error", e));
                 }
             } catch (Exception e1) {
@@ -60,7 +60,7 @@ public abstract class ApiSinkBolt implements IRichBolt, ApiAware {
     protected abstract void registerApiResult(String id, ObjectNode response);
 
     @Override
-    public void setApiConfiguration(ApisTopologyConfig apisConfiguration) {
+    public void setApiConfiguration(ApisRemoteCommandTopologyConfig apisConfiguration) {
         this.apisConfiguration = apisConfiguration;
     }
 

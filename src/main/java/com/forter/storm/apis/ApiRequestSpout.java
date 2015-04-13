@@ -6,6 +6,7 @@ import backtype.storm.topology.base.BaseRichSpout;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.forter.storm.apis.errors.ApiTopologyErrorHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,15 +15,15 @@ import java.util.Map;
 /**
  * Spout for reading API requests from redis queue
  */
-public abstract class ApiRequestSpout extends BaseRichSpout {
+public abstract class ApiRequestSpout<T extends ApisTopologyConfig> extends BaseRichSpout {
     private final static Logger logger = LoggerFactory.getLogger(ApiRequestSpout.class);
 
-    private final ApisTopologyConfig config;
+    private final T config;
 
     private SpoutOutputCollector collector;
     private ObjectReader reader;
 
-    public ApiRequestSpout(ApisTopologyConfig config) {
+    public ApiRequestSpout(T config) {
         this.config = config;
     }
 
@@ -43,8 +44,9 @@ public abstract class ApiRequestSpout extends BaseRichSpout {
                     emitCommand(collector, (ObjectNode) request);
                 } catch (Exception e) {
                     String message = "An error has ocurred while executin API call";
-                    if (config.getErrorHandler() != null) {
-                        reportError(id, config.getErrorHandler().getApiErrorMessage(id, message, e));
+                    ApiTopologyErrorHandler errorHandler = config.getTrasport().getErrorHandler();
+                    if (errorHandler != null) {
+                        reportError(id, errorHandler.getApiErrorMessage(id, message, e));
                     }
                 }
             } catch (Exception e) {
