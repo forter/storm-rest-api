@@ -1,9 +1,10 @@
 package com.forter.storm.apis;
 
-import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
-import backtype.storm.topology.IRichBolt;
+import backtype.storm.topology.BasicOutputCollector;
+import backtype.storm.topology.FailedException;
 import backtype.storm.topology.OutputFieldsDeclarer;
+import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Tuple;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -17,24 +18,27 @@ import java.util.Map;
 /**
  * Bolt for receiving end results for API stream operations and publishing them on redis for consumers
  */
-public abstract class ApiSinkBolt implements IRichBolt, ApiAware {
+public abstract class ApiSinkBolt extends BaseBasicBolt implements ApiAware {
     private final static Logger logger = LoggerFactory.getLogger(ApiSinkBolt.class);
 
     protected ApisRemoteCommandTopologyConfig apisConfiguration;
 
-    private OutputCollector collector;
     private ObjectReader reader;
 
     @Override
-    public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-        this.collector = collector;
+    public void prepare(Map stormConf, TopologyContext context) {
+        super.prepare(stormConf, context);
         this.reader = ObjectMapperHolder.getReader();
+    }
+
+    @Override
+    public void execute(Tuple input, BasicOutputCollector collector) {
+        execute(input, (ApisTopologyCommand)null);
     }
 
     @Override
     public void execute(Tuple input, ApisTopologyCommand command) {
         if (command == null) {
-            this.collector.ack(input);
             return;
         }
 
@@ -42,7 +46,6 @@ public abstract class ApiSinkBolt implements IRichBolt, ApiAware {
         try {
             final ObjectNode response = createResponse(input, command);
             registerApiResult(id, response);
-            this.collector.ack(input);
         } catch (Exception e) {
             logger.warn("Error writing API results to redis, writing error", e);
             try {
@@ -53,7 +56,7 @@ public abstract class ApiSinkBolt implements IRichBolt, ApiAware {
             } catch (Exception e1) {
                 logger.warn("Error reporting error to redis, API will not get a response", e1);
             }
-            this.collector.fail(input);
+            throw new FailedException();
         }
     }
 
@@ -62,11 +65,6 @@ public abstract class ApiSinkBolt implements IRichBolt, ApiAware {
     @Override
     public void setApiConfiguration(ApisRemoteCommandTopologyConfig apisConfiguration) {
         this.apisConfiguration = apisConfiguration;
-    }
-
-    @Override
-    public void execute(Tuple input) {
-        this.execute(input, null);
     }
 
     private ObjectNode createResponse(Tuple input, ApisTopologyCommand command) {

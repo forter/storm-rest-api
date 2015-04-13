@@ -1,6 +1,5 @@
 package com.forter.storm.apis.impl.redis;
 
-import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -21,8 +20,8 @@ public class RedisApiSinkBolt extends ApiSinkBolt {
     private RedisApisConfiguration configuration;
 
     @Override
-    public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-        super.prepare(stormConf, context, collector);
+    public void prepare(Map stormConf, TopologyContext context) {
+        super.prepare(stormConf, context);
         this.configuration = (RedisApisConfiguration) apisConfiguration.getTransport();
         this.writer = ObjectMapperHolder.getWriter();
         this.jedis = new Jedis(configuration.getApisRedisHost(), configuration.getApisRedisPort());
