@@ -57,7 +57,7 @@ public class ApisRemoteCommandTopologyConfig extends ApisTopologyConfig {
     }
 
     @Override
-    public ApisTransportTopologyConfig getTrasport() {
+    public ApisTransportTopologyConfig getTransport() {
         return this.trasport;
     }
 }

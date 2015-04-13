@@ -28,7 +28,7 @@ public abstract class RedisApiSpout<C extends ApisTopologyConfig, T extends Redi
 
     public RedisApiSpout(C config) {
         super(config);
-        this.transportConfig = (T) config.getTrasport();
+        this.transportConfig = (T) config.getTransport();
     }
 
     @Override

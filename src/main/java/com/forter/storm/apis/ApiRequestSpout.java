@@ -44,7 +44,7 @@ public abstract class ApiRequestSpout<T extends ApisTopologyConfig> extends Base
                     emitCommand(collector, (ObjectNode) request);
                 } catch (Exception e) {
                     String message = "An error has ocurred while executin API call";
-                    ApiTopologyErrorHandler errorHandler = config.getTrasport().getErrorHandler();
+                    ApiTopologyErrorHandler errorHandler = config.getTransport().getErrorHandler();
                     if (errorHandler != null) {
                         reportError(id, errorHandler.getApiErrorMessage(id, message, e));
                     }

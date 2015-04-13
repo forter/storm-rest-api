@@ -46,8 +46,8 @@ public abstract class ApiSinkBolt implements IRichBolt, ApiAware {
         } catch (Exception e) {
             logger.warn("Error writing API results to redis, writing error", e);
             try {
-                if (apisConfiguration.getTrasport().getErrorHandler() != null) {
-                    registerApiResult(id, apisConfiguration.getTrasport().getErrorHandler()
+                if (apisConfiguration.getTransport().getErrorHandler() != null) {
+                    registerApiResult(id, apisConfiguration.getTransport().getErrorHandler()
                             .getApiErrorMessage(id, "Error writing API results to redis, writing error", e));
                 }
             } catch (Exception e1) {

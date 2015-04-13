@@ -23,7 +23,7 @@ public class RedisApiSinkBolt extends ApiSinkBolt {
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         super.prepare(stormConf, context, collector);
-        this.configuration = (RedisApisConfiguration) apisConfiguration.getTrasport();
+        this.configuration = (RedisApisConfiguration) apisConfiguration.getTransport();
         this.writer = ObjectMapperHolder.getWriter();
         this.jedis = new Jedis(configuration.getApisRedisHost(), configuration.getApisRedisPort());
     }
