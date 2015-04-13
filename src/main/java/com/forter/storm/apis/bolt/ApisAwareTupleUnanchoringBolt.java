@@ -6,13 +6,11 @@ import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
-import backtype.storm.utils.Utils;
+import com.forter.storm.apis.ApisRemoteCommandTopologyConfig;
 import com.forter.storm.apis.ApisTopologyCommand;
-import com.forter.storm.apis.ApisTopologyConfig;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -87,5 +85,5 @@ public class ApisAwareTupleUnanchoringBolt implements IRichBolt, ApiAware<ApisTo
     public Map<String, Object> getComponentConfiguration() { return null; }
 
     @Override
-    public void setApiConfiguration(ApisTopologyConfig apisConfiguration) {}
+    public void setApiConfiguration(ApisRemoteCommandTopologyConfig apisConfiguration) {}
 }

@@ -5,8 +5,8 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
+import com.forter.storm.apis.ApisRemoteCommandTopologyConfig;
 import com.forter.storm.apis.ApisTopologyCommand;
-import com.forter.storm.apis.ApisTopologyConfig;
 import com.forter.storm.apis.bolt.ApiAware;
 import com.forter.storm.apis.bolt.ApiSkip;
 import com.forter.storm.apis.bolt.ApisWrappedBolt;
@@ -29,13 +29,13 @@ public class ApisBoltWrapper<T extends ApisTopologyCommand> implements IRichBolt
     private static Logger logger = LoggerFactory.getLogger(ApisBoltWrapper.class);
 
     private final IRichBolt bolt;
-    private final ApisTopologyConfig apisConfiguration;
+    private final ApisRemoteCommandTopologyConfig apisConfiguration;
 
     private transient String boltIdentification;
     private transient ApisInterceptorOutputCollector interceptorOutputCollector;
     private transient TopologyContext context;
 
-    public ApisBoltWrapper(IRichBolt bolt, ApiAware apiAwareWrapped, ApisTopologyConfig apisConfiguration) {
+    public ApisBoltWrapper(IRichBolt bolt, ApiAware apiAwareWrapped, ApisRemoteCommandTopologyConfig apisConfiguration) {
         this.apisConfiguration = apisConfiguration;
         this.bolt = bolt;
 

@@ -3,10 +3,8 @@ package com.forter.storm.apis.wrappers;
 import backtype.storm.task.IOutputCollector;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Tuple;
-import backtype.storm.utils.Utils;
+import com.forter.storm.apis.ApisRemoteCommandTopologyConfig;
 import com.forter.storm.apis.ApisTopologyCommand;
-import com.forter.storm.apis.ApisTopologyConfig;
-import com.forter.storm.apis.bolt.ApiAware;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -31,13 +29,13 @@ public class ApisInterceptorOutputCollector extends OutputCollector {
      * when a bolt is going to ack/fail/emit again...
      */
     private final ConcurrentMap<Tuple, Tuple> messageOriginalTupleMap;
-    private final ApisTopologyConfig apisConfiguration;
+    private final ApisRemoteCommandTopologyConfig apisConfiguration;
     private final String apisIdFieldName;
     private final String apisCommandFieldName;
     private final boolean apiAware;
     private final String id;
 
-    public ApisInterceptorOutputCollector(IOutputCollector delegate, ApisTopologyConfig apisConfiguration, boolean apiAware, String id) {
+    public ApisInterceptorOutputCollector(IOutputCollector delegate, ApisRemoteCommandTopologyConfig apisConfiguration, boolean apiAware, String id) {
         super(delegate);
         this.apiAware = apiAware;
         this.messageOriginalTupleMap = new ConcurrentLinkedHashMap.Builder<Tuple, Tuple>()

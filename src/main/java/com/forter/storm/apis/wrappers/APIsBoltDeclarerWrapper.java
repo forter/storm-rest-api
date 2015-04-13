@@ -7,7 +7,7 @@ import backtype.storm.grouping.CustomStreamGrouping;
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
-import com.forter.storm.apis.ApisTopologyConfig;
+import com.forter.storm.apis.ApisRemoteCommandTopologyConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,9 +18,9 @@ import java.util.Map;
 */
 public class APIsBoltDeclarerWrapper implements BoltDeclarer {
     private final BoltDeclarer delegate;
-    private final ApisTopologyConfig apisConfiguration;
+    private final ApisRemoteCommandTopologyConfig apisConfiguration;
 
-    public APIsBoltDeclarerWrapper(BoltDeclarer delegate, ApisTopologyConfig config) {
+    public APIsBoltDeclarerWrapper(BoltDeclarer delegate, ApisRemoteCommandTopologyConfig config) {
         this.delegate = delegate;
         this.apisConfiguration = config;
     }
