@@ -50,4 +50,9 @@ public abstract class RedisApiSpout<C extends ApisTopologyConfig, T extends Redi
         super.close();
         this.jedis.disconnect();
     }
+
+    @Override
+    protected String getApiCommandJson() {
+        return this.jedis.rpop(transportConfig.getApisRedisRequestQueue());
+    }
 }
