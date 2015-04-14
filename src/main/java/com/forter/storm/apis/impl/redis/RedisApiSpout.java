@@ -33,6 +33,7 @@ public abstract class RedisApiSpout<C extends ApisTopologyConfig, T extends Redi
 
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
+        super.open(conf, context, collector);
         jedis = new Jedis(transportConfig.getApisRedisHost(), transportConfig.getApisRedisPort());
         writer = ObjectMapperHolder.getWriter();
     }
