@@ -8,9 +8,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.forter.storm.apis.ApiRequestSpout;
 import com.forter.storm.apis.ApisTopologyConfig;
 import com.forter.storm.apis.ObjectMapperHolder;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.util.Map;
 
@@ -23,7 +27,7 @@ public abstract class RedisApiSpout<C extends ApisTopologyConfig, T extends Redi
 
     protected final T transportConfig;
 
-    private transient Jedis jedis;
+    private transient JedisPool pool;
     private transient ObjectWriter writer;
 
     public RedisApiSpout(C config) {
@@ -33,27 +37,49 @@ public abstract class RedisApiSpout<C extends ApisTopologyConfig, T extends Redi
 
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
-        super.open(conf, context, collector);
-        jedis = new Jedis(transportConfig.getApisRedisHost(), transportConfig.getApisRedisPort());
-        writer = ObjectMapperHolder.getWriter();
+        JedisPoolConfig config = new JedisPoolConfig();
+        config.setMaxTotal(2);
+        this.pool = new JedisPool(config, transportConfig.getApisRedisHost(), transportConfig.getApisRedisPort());
+        this.writer = ObjectMapperHolder.getWriter();
     }
 
     protected void reportError(String id, ObjectNode error) {
+        Jedis resource = null;
         try {
-            this.jedis.lpush(transportConfig.getApisRedisResponseChannel(), writer.writeValueAsString(error));
+            resource = this.pool.getResource();
+            resource.lpush(transportConfig.getApisRedisResponseChannel(), writer.writeValueAsString(error));
         } catch (JsonProcessingException e) {
             logger.warn("Error while reporting error", e);
+        } catch (JedisConnectionException e) {
+            this.pool.returnBrokenResource(resource);
+            resource = null;
+        } finally {
+            if (resource != null) {
+                this.pool.returnResource(resource);
+            }
         }
     }
 
     @Override
     public void close() {
         super.close();
-        this.jedis.disconnect();
+        this.pool.close();
     }
 
     @Override
     protected String getApiCommandJson() {
-        return this.jedis.rpop(transportConfig.getApisRedisRequestQueue());
+        Jedis resource = null;
+        try {
+            resource = this.pool.getResource();
+            return resource.rpop(transportConfig.getApisRedisRequestQueue());
+        } catch (JedisConnectionException e) {
+            this.pool.returnBrokenResource(resource);
+            resource = null;
+            throw Throwables.propagate(e);
+        } finally {
+            if (resource != null) {
+                this.pool.returnResource(resource);
+            }
+        }
     }
 }
