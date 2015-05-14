@@ -37,6 +37,7 @@ public abstract class RedisApiSpout<C extends ApisTopologyConfig, T extends Redi
 
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
+        super.open(conf, context, collector);
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxTotal(2);
         this.pool = new JedisPool(config, transportConfig.getApisRedisHost(), transportConfig.getApisRedisPort());
