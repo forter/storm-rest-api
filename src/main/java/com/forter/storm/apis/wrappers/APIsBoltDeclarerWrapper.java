@@ -4,6 +4,7 @@ import backtype.storm.generated.GlobalStreamId;
 import backtype.storm.generated.Grouping;
 import backtype.storm.generated.NullStruct;
 import backtype.storm.grouping.CustomStreamGrouping;
+import backtype.storm.grouping.PartialKeyGrouping;
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
@@ -93,6 +94,16 @@ public class APIsBoltDeclarerWrapper implements BoltDeclarer {
     @Override
     public BoltDeclarer directGrouping(String componentId, String streamId) {
         return grouping(componentId, streamId, Grouping.direct(new NullStruct()));
+    }
+
+    @Override
+    public BoltDeclarer partialKeyGrouping(String componentId, Fields fields) {
+        return this.customGrouping(componentId, new PartialKeyGrouping(fields));
+    }
+
+    @Override
+    public BoltDeclarer partialKeyGrouping(String componentId, String streamId, Fields fields) {
+        return this.customGrouping(componentId, streamId, new PartialKeyGrouping(fields));
     }
 
     @Override
