@@ -1,13 +1,13 @@
 package com.forter.storm.apis.wrappers;
 
-import org.apache.storm.generated.GlobalStreamId;
-import org.apache.storm.generated.Grouping;
-import org.apache.storm.generated.NullStruct;
-import org.apache.storm.grouping.CustomStreamGrouping;
-import org.apache.storm.grouping.PartialKeyGrouping;
-import org.apache.storm.topology.BoltDeclarer;
-import org.apache.storm.tuple.Fields;
-import org.apache.storm.utils.Utils;
+import backtype.storm.generated.GlobalStreamId;
+import backtype.storm.generated.Grouping;
+import backtype.storm.generated.NullStruct;
+import backtype.storm.grouping.CustomStreamGrouping;
+import backtype.storm.grouping.PartialKeyGrouping;
+import backtype.storm.topology.BoltDeclarer;
+import backtype.storm.tuple.Fields;
+import backtype.storm.utils.Utils;
 import com.forter.storm.apis.ApisRemoteCommandTopologyConfig;
 
 import java.util.ArrayList;
@@ -149,21 +149,6 @@ public class APIsBoltDeclarerWrapper implements BoltDeclarer {
     @Override
     public BoltDeclarer setNumTasks(Number val) {
         return delegate.setNumTasks(val);
-    }
-
-    @Override
-    public BoltDeclarer setMemoryLoad(Number number) {
-        return this.delegate.setMemoryLoad(number);
-    }
-
-    @Override
-    public BoltDeclarer setMemoryLoad(Number number, Number number1) {
-        return this.delegate.setMemoryLoad(number, number1);
-    }
-
-    @Override
-    public BoltDeclarer setCPULoad(Number number) {
-        return this.delegate.setCPULoad(number);
     }
 
     protected BoltDeclarer grouping(String componentId, String streamId, Grouping grouping) {

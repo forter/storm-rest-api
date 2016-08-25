@@ -1,12 +1,10 @@
 package com.forter.storm.apis.wrappers;
 
-import org.apache.storm.task.GeneralTopologyContext;
-import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.TupleImpl;
-import org.apache.storm.utils.Utils;
+import backtype.storm.task.GeneralTopologyContext;
+import backtype.storm.tuple.Tuple;
+import backtype.storm.tuple.TupleImpl;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Extending the base tuple impl in order to supply own equality

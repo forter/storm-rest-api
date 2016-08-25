@@ -1,7 +1,7 @@
 package com.forter.storm.apis.bolt;
 
-import org.apache.storm.topology.IComponent;
-import org.apache.storm.tuple.Tuple;
+import backtype.storm.topology.IComponent;
+import backtype.storm.tuple.Tuple;
 import com.forter.storm.apis.ApisRemoteCommandTopologyConfig;
 import com.forter.storm.apis.ApisTopologyCommand;
 

@@ -1,8 +1,8 @@
 package com.forter.storm.apis.wrappers;
 
-import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.tuple.Fields;
-import org.apache.storm.utils.Utils;
+import backtype.storm.topology.OutputFieldsDeclarer;
+import backtype.storm.tuple.Fields;
+import backtype.storm.utils.Utils;
 import com.forter.storm.apis.ApisRemoteCommandTopologyConfig;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;

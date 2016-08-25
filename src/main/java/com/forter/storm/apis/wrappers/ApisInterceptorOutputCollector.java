@@ -1,8 +1,8 @@
 package com.forter.storm.apis.wrappers;
 
-import org.apache.storm.task.IOutputCollector;
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
+import backtype.storm.task.IOutputCollector;
+import backtype.storm.task.OutputCollector;
+import backtype.storm.tuple.Tuple;
 import com.forter.storm.apis.ApisRemoteCommandTopologyConfig;
 import com.forter.storm.apis.ApisTopologyCommand;
 import com.google.common.base.Preconditions;
