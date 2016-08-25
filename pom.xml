@@ -4,12 +4,12 @@
     <groupId>com.forter</groupId>
     <artifactId>storm-topology-api</artifactId>
     <packaging>jar</packaging>
-    <version>0.1.27.1</version>
+    <version>0.1.27.2</version>
     <properties>
         <storm.version>1.0.2</storm.version>
         <slf4j.version>1.7.7</slf4j.version>
         <logback.version>1.1.2</logback.version>
-        <jackson.version>2.4.2</jackson.version>
+        <jackson.version>2.6.2</jackson.version>
     </properties>
     <dependencies>
         <dependency>
